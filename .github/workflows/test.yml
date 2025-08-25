@@ -19,8 +19,7 @@ jobs:
         env:
           MONGO_INITDB_ROOT_USERNAME: root
           MONGO_INITDB_ROOT_PASSWORD: example
-        ports:
-          - 27017:27017
+        ports: []
 
     steps:
       - name: Checkout repo
@@ -44,6 +43,19 @@ jobs:
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
+
+      - name: Wait for MongoDB
+        run: |
+          for i in {1..30}; do
+            if mongo "mongodb://root:example@mongodb:27017/test-db" --eval "db.runCommand({ ping: 1 })" &>/dev/null; then
+              echo "MongoDB ready!"
+              exit 0
+            fi
+            echo "Waiting 1s..."
+            sleep 1
+          done
+          echo "MongoDB did not start in time"
+          exit 1
 
       - name: Run UI and API tests
         env:
