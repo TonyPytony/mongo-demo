@@ -1,10 +1,14 @@
-//Цей файл — це модуль для підключення до MongoDB. Він робить роботу з базою зручною та безпечною.
 import { MongoClient, Db } from 'mongodb';
 
 let db: Db;
 
+/**
+ * Підключення до MongoDB з singleton-патерном
+ * @param uri - MongoDB URI (наприклад process.env.MONGO_URI)
+ * @param dbName - назва бази
+ */
 export async function connectToDB(uri: string, dbName: string): Promise<Db> {
-    if (db) return db; // singleton pattern: підключаємося лише один раз
+    if (db) return db; // singleton: не підключаємося повторно
 
     const client = new MongoClient(uri, {
         serverSelectionTimeoutMS: 5000, // таймаут підключення
@@ -12,18 +16,17 @@ export async function connectToDB(uri: string, dbName: string): Promise<Db> {
 
     try {
         await client.connect();
-        console.log('Connected to MongoDB');
+        console.log(`✅ Connected to MongoDB: ${dbName}`);
         db = client.db(dbName);
         return db;
     } catch (error) {
-        console.error('Error connecting to MongoDB:', error);
-        process.exit(1);
+        console.error('❌ Error connecting to MongoDB:', error);
+        throw error; // кинемо помилку, Playwright відловить
     }
 }
-//Для чого це потрібно?
-//
-// Щоб не дублювати код підключення у кожному файлі.
-//
-// Щоб уникнути декількох підключень (це може перевантажити БД).
-//
-// Щоб мати єдиний центр керування підключенням.
+
+// Використання за замовчуванням (для тестів)
+export const dbPromise = connectToDB(
+    process.env.MONGO_URI || 'mongodb://localhost:27017',
+    process.env.DB_NAME || 'test-db'
+);
