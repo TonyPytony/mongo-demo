@@ -21,33 +21,29 @@ jobs:
           MONGO_INITDB_ROOT_PASSWORD: example
         ports:
           - 27017:27017
+        options: >-
+          --health-cmd "mongo -u root -p example --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Cache node_modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+      - run: npx playwright install --with-deps
 
-      - name: Run UI and API tests
+      - name: Run tests
         env:
-          MONGO_URI: mongodb://root:example@mongodb:27017/test-db
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: example
+          MONGO_HOST: mongodb
+          MONGO_PORT: 27017
           DB_NAME: test-db
           BASE_URL: http://localhost:3000
           CI: true
@@ -55,23 +51,9 @@ jobs:
           npx playwright test tests --project=${{ matrix.browser }} --reporter=allure-playwright
           npx playwright test tests/api --reporter=allure-playwright
 
-      - name: Generate Allure report
-        run: npx allure generate ./allure-results --clean
+      - run: npx allure generate ./allure-results --clean
 
-      - name: Upload Allure Results
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: allure-results
           path: ./allure-results
-
-  # Matrix – для Chromium, Firefox, WebKit:
-  # Тести підуть паралельно на трьох браузерах.
-  # Кеш node_modules – щоб зекономити час на інсталяцію.
-  # Артефакти Allure report – щоб можна було завантажити звіт після CI.
-  # Видалення allure open – на CI він блокує job.
-  # Окремо UI та API тести (якщо вони розбиті по папках).
-
-  # strategy.matrix.browser – запускає по одному job на кожен браузер.
-  # Cache node_modules – пришвидшить збірку.
-  # Upload Allure Results – щоб ти міг скачати репорт із GitHub UI.
-  # Видалили npx allure open – бо він блокує CI.

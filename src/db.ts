@@ -2,17 +2,10 @@ import { MongoClient, Db } from 'mongodb';
 
 let db: Db;
 
-/**
- * Підключення до MongoDB з singleton-патерном
- * @param uri - MongoDB URI (наприклад process.env.MONGO_URI)
- * @param dbName - назва бази
- */
 export async function connectToDB(uri: string, dbName: string): Promise<Db> {
-    if (db) return db; // singleton: не підключаємося повторно
+    if (db) return db; // singleton
 
-    const client = new MongoClient(uri, {
-        serverSelectionTimeoutMS: 5000, // таймаут підключення
-    });
+    const client = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 });
 
     try {
         await client.connect();
@@ -21,12 +14,26 @@ export async function connectToDB(uri: string, dbName: string): Promise<Db> {
         return db;
     } catch (error) {
         console.error('❌ Error connecting to MongoDB:', error);
-        throw error; // кинемо помилку, Playwright відловить
+        throw error;
     }
 }
 
-// Використання за замовчуванням (для тестів)
-export const dbPromise = connectToDB(
-    process.env.MONGO_URI || 'mongodb://localhost:27017',
-    process.env.DB_NAME || 'test-db'
-);
+/**
+ * Формуємо URI залежно від середовища
+ * - Для локальної MongoDB: 'mongodb://localhost:27017'
+ * - Для CI/GitHub Actions: 'mongodb://root:example@mongodb:27017'
+ */
+const isCI = process.env.CI === 'true';
+
+const mongoHost = isCI ? 'mongodb' : 'localhost';
+const mongoPort = '27017';
+const dbName = process.env.DB_NAME || 'test-db';
+
+const mongoUser = isCI ? 'root' : '';
+const mongoPass = isCI ? 'example' : '';
+
+const mongoUri = isCI
+    ? `mongodb://${mongoUser}:${mongoPass}@${mongoHost}:${mongoPort}/${dbName}`
+    : `mongodb://${mongoHost}:${mongoPort}`;
+
+export const dbPromise = connectToDB(mongoUri, dbName);
