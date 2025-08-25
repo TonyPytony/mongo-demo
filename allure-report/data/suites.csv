@@ -1,5 +1,0 @@
-"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
-"","39","Create -> Read -> Update -> Delete user","Chromium","Mon Aug 25 18:45:25 EEST 2025","passed","Mon Aug 25 18:45:25 EEST 2025","MongoDB UserService CRUD","user.spec.ts","",""
-"","242","Create user in DB and login via UI","Chromium","Mon Aug 25 18:45:25 EEST 2025","passed","Mon Aug 25 18:45:25 EEST 2025","UI Login with MongoDB user","login-ui.spec.ts","",""
-"","241","DB + UI flow for jane_doe","Chromium","Mon Aug 25 18:45:25 EEST 2025","passed","Mon Aug 25 18:45:25 EEST 2025","DB + UI Integration Flow","login-ui-db.spec.ts","",""
-"","245","DB + UI flow for john_doe","Chromium","Mon Aug 25 18:45:25 EEST 2025","passed","Mon Aug 25 18:45:25 EEST 2025","DB + UI Integration Flow","login-ui-db.spec.ts","",""

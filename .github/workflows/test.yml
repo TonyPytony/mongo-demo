@@ -16,7 +16,14 @@ jobs:
     services:
       mongodb:
         image: mongo:6.0
-        ports: [ ]
+        options: >
+          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: example
 
     steps:
       - name: Checkout repo
@@ -43,7 +50,7 @@ jobs:
 
       - name: Run UI and API tests
         env:
-          MONGO_URI: mongodb://mongodb:27017/test-db
+          MONGO_URI: mongodb://root:example@mongodb:27017/test-db
           DB_NAME: test-db
           BASE_URL: http://localhost:3000
           CI: true
