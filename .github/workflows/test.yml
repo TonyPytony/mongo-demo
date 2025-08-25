@@ -16,22 +16,17 @@ jobs:
     services:
       mongodb:
         image: mongo:6.0
-        env:
-          MONGO_INITDB_ROOT_USERNAME: root
-          MONGO_INITDB_ROOT_PASSWORD: example
-        ports: []
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - name: Cache node_modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -44,28 +39,22 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Wait for MongoDB
+      - name: Wait for MongoDB to be ready
         run: |
           for i in {1..30}; do
-            if mongo "mongodb://root:example@mongodb:27017/test-db" --eval "db.runCommand({ ping: 1 })" &>/dev/null; then
-              echo "MongoDB ready!"
-              exit 0
-            fi
+            nc -z localhost 27017 && echo "MongoDB ready" && break
             echo "Waiting 1s..."
             sleep 1
           done
-          echo "MongoDB did not start in time"
-          exit 1
 
-      - name: Run UI and API tests
+      - name: Run Playwright tests
         env:
-          MONGO_URI: mongodb://root:example@mongodb:27017/test-db
+          MONGO_URI: mongodb://localhost:27017/test-db
           DB_NAME: test-db
           BASE_URL: http://localhost:3000
           CI: true
         run: |
           npx playwright test tests --project=${{ matrix.browser }} --reporter=allure-playwright
-          npx playwright test tests/api --reporter=allure-playwright
 
       - name: Generate Allure report
         run: npx allure generate ./allure-results --clean
