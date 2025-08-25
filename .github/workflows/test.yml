@@ -21,32 +21,45 @@ jobs:
           MONGO_INITDB_ROOT_PASSWORD: example
         ports:
           - 27017:27017
-        options: >
-          --bind_ip_all
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 20
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      - run: npx playwright install --with-deps
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
-      - name: Run tests
+      - name: Run UI and API tests
         env:
           MONGO_URI: mongodb://root:example@mongodb:27017/test-db
           DB_NAME: test-db
+          BASE_URL: http://localhost:3000
           CI: true
         run: |
           npx playwright test tests --project=${{ matrix.browser }} --reporter=allure-playwright
           npx playwright test tests/api --reporter=allure-playwright
 
-      - run: npx allure generate ./allure-results --clean
+      - name: Generate Allure report
+        run: npx allure generate ./allure-results --clean
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Allure Results
+        uses: actions/upload-artifact@v4
         with:
           name: allure-results
           path: ./allure-results
