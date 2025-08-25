@@ -1,3 +1,4 @@
+[![CI Playwright Tests](https://github.com/TonyPytony/mongo-demo/actions/workflows/test.yml/badge.svg?branch=develop)](https://github.com/TonyPytony/mongo-demo/actions/workflows/test.yml)
 mongo-demo/
 ├── src/
 │   ├── db.ts               # 1. Підключення до MongoDB
@@ -23,5 +24,3 @@ user-crud.spec.ts → Автотест для перевірки CRUD (Create �
 index.ts → Ручний тест, щоб переконатися, що все працює до того, як запускаємо автотести.
 Запускаєш index.ts: npm start
 Запускаєш тести: npx playwright test
-package.json → Визначає залежності та скрипти для запуску.
-tsconfig.json → Налаштування TypeScript.

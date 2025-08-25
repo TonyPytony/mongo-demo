@@ -6,7 +6,12 @@
   "scripts": {
     "start": "node --loader ts-node/esm src/index.ts",
     "tsc": "tsc",
-    "test:e2e": "playwright test"
+    "prepare": "npx playwright install --with-deps",
+    "test:e2e": "playwright test",
+    "test:ui": "playwright test tests --reporter=allure-playwright",
+    "test:api": "playwright test tests/api --reporter=allure-playwright",
+    "allure:generate": "npx allure generate ./allure-results --clean",
+    "allure:open": "npx allure open ./allure-report"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +25,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
+    "allure-commandline": "^2.34.1",
     "allure-playwright": "^3.3.3"
   }
 }
