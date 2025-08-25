@@ -21,11 +21,8 @@ jobs:
           MONGO_INITDB_ROOT_PASSWORD: example
         ports:
           - 27017:27017
-        options: >-
-          --health-cmd "mongo -u root -p example --eval 'db.runCommand({ ping: 1 })'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        options: >
+          --bind_ip_all
 
     steps:
       - uses: actions/checkout@v3
@@ -40,12 +37,8 @@ jobs:
 
       - name: Run tests
         env:
-          MONGO_INITDB_ROOT_USERNAME: root
-          MONGO_INITDB_ROOT_PASSWORD: example
-          MONGO_HOST: mongodb
-          MONGO_PORT: 27017
+          MONGO_URI: mongodb://root:example@mongodb:27017/test-db
           DB_NAME: test-db
-          BASE_URL: http://localhost:3000
           CI: true
         run: |
           npx playwright test tests --project=${{ matrix.browser }} --reporter=allure-playwright
