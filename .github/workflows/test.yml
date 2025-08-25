@@ -16,14 +16,11 @@ jobs:
     services:
       mongodb:
         image: mongo:6.0
-        options: >
-          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
         env:
           MONGO_INITDB_ROOT_USERNAME: root
           MONGO_INITDB_ROOT_PASSWORD: example
+        options: >
+          --bind_ip_all
 
     steps:
       - name: Checkout repo
